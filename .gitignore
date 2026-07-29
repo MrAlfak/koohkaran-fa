@@ -29,3 +29,5 @@ release
 *.sw?
 .claude
 .cursor
+
+public/images/svg_img_*
