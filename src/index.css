@@ -54,8 +54,13 @@
     @apply border-border;
   }
   html {
-    scroll-behavior: auto;
+    scroll-behavior: smooth;
     overflow-x: clip;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
   }
   html[dir="rtl"] {
     direction: rtl;
@@ -556,9 +561,8 @@
   transition-delay: var(--sketch-delay-out, 0ms);
 }
 
-/* smoother scroll — pause heavy transitions while scrolling */
-html.is-scrolling .faq-sketch-wrap path,
-html.is-scrolling .scroll-fade {
+/* pause only the heavy SVG stroke-draw animation while scrolling — cheap opacity fades (.scroll-fade) stay smooth */
+html.is-scrolling .faq-sketch-wrap path {
   transition-duration: 0ms !important;
   transition-delay: 0ms !important;
 }

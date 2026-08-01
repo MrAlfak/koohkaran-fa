@@ -162,7 +162,11 @@ function useSketchHoverDraw(duration = 2800, stagger = 90) {
 function Fade({ children, d = 0, style = {} }: { children: React.ReactNode; d?: number; style?: React.CSSProperties }) {
   const { ref, v } = useFade();
   return (
-    <div ref={ref} className="scroll-fade" style={{ opacity: v ? 1 : 0, transition: `opacity .55s ease ${d}s`, ...style }}>
+    <div ref={ref} className="scroll-fade" style={{
+      opacity: v ? 1 : 0, transform: v ? "none" : "translateY(20px)",
+      transition: `opacity .7s cubic-bezier(.2,.7,.2,1) ${d}s, transform .7s cubic-bezier(.2,.7,.2,1) ${d}s`,
+      ...style,
+    }}>
       {children}
     </div>
   );
