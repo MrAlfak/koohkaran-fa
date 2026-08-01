@@ -67,14 +67,6 @@ export const fa = {
       desc: "ساخت عناصر اختصاصی از کانتر آشپزخانه لوکس تا شومینه‌های یکپارچه باشکوه.",
     },
   },
-  collections: {
-    granite: "گرانیت",
-    marble: "مرمر",
-    onyx: "اونیکس",
-    travertine: "تراورتن",
-    semiPrecious: "نیمه‌قیمتی",
-    limestone: "سنگ آهک",
-  },
   stats: {
     years: "سال تجربه تخصصی",
     residential: "پروژه مسکونی",
@@ -183,6 +175,8 @@ export const fa = {
     productDetails: "جزئیات محصول",
     relatedProducts: "محصولات مرتبط",
     allProducts: "همه محصولات",
+    prevPage: "قبلی",
+    nextPage: "بعدی",
   },
   events: {
     title: "رویدادها",

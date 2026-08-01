@@ -27,6 +27,8 @@ function Fade({ children, d = 0, style = {} }: { children: React.ReactNode; d?: 
 }
 
 const TABS = [t("tabs.all"), ...PRODUCT_CATEGORIES] as const;
+const PAGE_SIZE = 8;
+const toFaDigits = (n: number) => n.toString().replace(/\d/g, (d) => "۰۱۲۳۴۵۶۷۸۹"[Number(d)]);
 
 export default function ProductsPage({
   onNavigate,
@@ -37,12 +39,25 @@ export default function ProductsPage({
 }) {
   const allTab = t("tabs.all");
   const [activeCat, setActiveCat] = useState<string>(initialCategory ?? allTab);
+  const [page, setPage] = useState(1);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (initialCategory) setActiveCat(initialCategory);
   }, [initialCategory]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [activeCat]);
+
   const list = PRODUCTS.filter((p) => activeCat === allTab || p.cat === activeCat);
+  const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
+  const pagedList = list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  const goToPage = (n: number) => {
+    setPage(n);
+    gridRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <div style={{ fontFamily: FONT_FAMILY, background: "#fff", color: "#1c1917", overflowX: "hidden" }}>
@@ -75,8 +90,8 @@ export default function ProductsPage({
       </section>
 
       <section style={{ padding: "0 clamp(24px,5vw,64px) clamp(60px,8vw,110px)" }}>
-        <div className="max-w-site products-page-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "clamp(20px,2.5vw,40px)" }}>
-          {list.map((p, i) => (
+        <div ref={gridRef} className="max-w-site products-page-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: "clamp(20px,2.5vw,40px)" }}>
+          {pagedList.map((p, i) => (
             <Fade key={p.name} d={(i % 4) * 0.07}>
               <div style={{ cursor: "pointer" }} onClick={() => onNavigate("product", p.id)}>
                 <div style={{ overflow: "hidden", marginBottom: 16, aspectRatio: "4/3" }}>
@@ -91,6 +106,33 @@ export default function ProductsPage({
           ))}
         </div>
         {list.length === 0 && <p style={{ maxWidth: 1400, margin: "0 auto", color: "#a8a29e", fontSize: 14 }}>{t("products.empty")}</p>}
+        {totalPages > 1 && (
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "clamp(16px,2vw,32px)", marginTop: "clamp(40px,5vw,64px)" }}>
+            <button onClick={() => page > 1 && goToPage(page - 1)} disabled={page === 1}
+              style={{
+                background: "none", border: "none", fontFamily: "inherit", fontSize: 13,
+                cursor: page === 1 ? "default" : "pointer", color: page === 1 ? "#d6d3d1" : "#57534e",
+                padding: 0,
+              }}>{t("products.prevPage")}</button>
+            <div style={{ display: "flex", gap: 4 }}>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+                <button key={n} onClick={() => goToPage(n)}
+                  style={{
+                    width: 30, height: 30, border: "none", background: "none", cursor: "pointer",
+                    fontSize: 13, fontFamily: "inherit",
+                    color: page === n ? "#1c1917" : "#a8a29e",
+                    textDecoration: page === n ? "underline" : "none", textUnderlineOffset: 6,
+                  }}>{toFaDigits(n)}</button>
+              ))}
+            </div>
+            <button onClick={() => page < totalPages && goToPage(page + 1)} disabled={page === totalPages}
+              style={{
+                background: "none", border: "none", fontFamily: "inherit", fontSize: 13,
+                cursor: page === totalPages ? "default" : "pointer", color: page === totalPages ? "#d6d3d1" : "#57534e",
+                padding: 0,
+              }}>{t("products.nextPage")}</button>
+          </div>
+        )}
       </section>
 
       <SiteFooter onNavigate={onNavigate} />

@@ -12,10 +12,10 @@ import SocialFab from "./components/SocialFab";
 import { BackgroundMusicProvider } from "./components/BackgroundMusicProvider";
 import NavHeaderActions from "./components/NavHeaderActions";
 import { updatePageSeo, SITE_NAME } from "./seo";
-import { getProduct } from "./products";
+import { getProduct, CATEGORY_SUMMARIES } from "./products";
 import { getEvent } from "./events";
 import { t, fa } from "./i18n";
-import { NAV_ITEMS, FONT_FAMILY, type NavigateFn, type Page } from "./shared/nav";
+import { NAV_ITEMS, FONT_FAMILY, pathForPage, parseLocation, type NavigateFn, type Page } from "./shared/nav";
 import { SiteFooter } from "./shared/SiteFooter";
 
 /* ─── fade-in hook ─── */
@@ -169,19 +169,15 @@ function Fade({ children, d = 0, style = {} }: { children: React.ReactNode; d?: 
 }
 
 /* ─── data ─── */
-const COLLECTIONS = [
-  { name: t("collections.granite"),       count: 16, img: "/images/granite.jpg" },
-  { name: t("collections.marble"),        count: 47, img: "/images/marble.jpg" },
-  { name: t("collections.onyx"),          count:  9, img: "/images/onyx.jpg" },
-  { name: t("collections.travertine"),    count: 23, img: "/images/travertine.jpg" },
-  { name: t("collections.semiPrecious"), count:  2, img: "/images/semiprecious.jpg" },
-  { name: t("collections.limestone"),     count:  3, img: "/images/limestone.jpg" },
-];
+const FEATURED_PRODUCT_IDS = [20, 16, 26];
+const FEATURED_PRODUCTS = FEATURED_PRODUCT_IDS.map(getProduct);
 
-const PRODUCTS = [
-  { name: "جلبک پنبه‌ای", sub: "مرمر  ·  ۳۲۰×۱۷۵", img: "/images/product1.jpg", productId: 1 },
-  { name: "مشکی سه‌بعدی", sub: "اونیکس  ·  ۲۷۰×۱۵۰", img: "/images/product2.jpg", productId: 5 },
-  { name: "سفید خطی نطنز", sub: "گرانیت  ·  ۳۰۰×۱۳۵", img: "/images/product3.jpg", productId: 3 },
+const CTA_SLIDER_IMAGES = [
+  "images/koohkran-slider.webp",
+  "images/koohkran-slider2.webp",
+  "images/koohkran-slider3.webp",
+  "images/koohkran-slider4.webp",
+  "images/koohkran-slider5.webp",
 ];
 
 const STATS = [
@@ -256,14 +252,29 @@ function ArrowLink({ children, href = "#", light = false, onClick }: { children:
 
 /* ════════════════ ROUTER ════════════════ */
 function PageTransition({ page }: { page: Page }) {
+  const initialLocation = useRef(parseLocation(window.location.pathname, window.location.search)).current;
   const [visible, setVisible] = useState(false);
-  const [currentPage, setCurrentPage] = useState(page);
-  const [productId, setProductId] = useState(0);
-  const [eventId, setEventId] = useState(0);
-  const [productsCategory, setProductsCategory] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<Page>(initialLocation.page ?? page);
+  const [productId, setProductId] = useState(initialLocation.page === "product" ? initialLocation.id : 0);
+  const [eventId, setEventId] = useState(initialLocation.page === "event" ? initialLocation.id : 0);
+  const [productsCategory, setProductsCategory] = useState<string | null>(initialLocation.category);
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
+  }, []);
+
+  useEffect(() => {
+    const onPopState = () => {
+      const loc = parseLocation(window.location.pathname, window.location.search);
+      setProductId(loc.page === "product" ? loc.id : 0);
+      setEventId(loc.page === "event" ? loc.id : 0);
+      setProductsCategory(loc.category);
+      setCurrentPage(loc.page);
+      window.scrollTo(0, 0);
+      setVisible(true);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
   useEffect(() => {
@@ -306,15 +317,20 @@ function PageTransition({ page }: { page: Page }) {
       if (p === "product") setProductId(id);
       if (p === "event") setEventId(id);
     }
+    let nextCategory = productsCategory;
     if (options?.category !== undefined) {
+      nextCategory = options.category;
       setProductsCategory(options.category);
     } else if (p !== "products") {
+      nextCategory = null;
       setProductsCategory(null);
     }
     if (p === currentPage && id === undefined && options?.category === undefined) return;
     setVisible(false);
     setTimeout(() => {
       setCurrentPage(p);
+      const path = pathForPage(p, p === "product" || p === "event" ? id : undefined, nextCategory);
+      window.history.pushState({}, "", path);
       window.scrollTo(0, 0);
       requestAnimationFrame(() => setVisible(true));
     }, 420);
@@ -358,7 +374,24 @@ function HomePage({ onNavigate }: { onNavigate: NavigateFn }) {
   const [openTab, setOpenTab] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [ctaSlide, setCtaSlide] = useState(0);
   const sketchRef = useSketchHoverDraw();
+
+  const ctaTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startCtaTimer = () => {
+    if (ctaTimerRef.current) clearInterval(ctaTimerRef.current);
+    ctaTimerRef.current = setInterval(() => {
+      setCtaSlide(s => (s + 1) % CTA_SLIDER_IMAGES.length);
+    }, 5000);
+  };
+  useEffect(() => {
+    startCtaTimer();
+    return () => { if (ctaTimerRef.current) clearInterval(ctaTimerRef.current); };
+  }, []);
+  const goToCtaSlide = (i: number) => {
+    setCtaSlide(i);
+    startCtaTimer();
+  };
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
@@ -588,11 +621,11 @@ function HomePage({ onNavigate }: { onNavigate: NavigateFn }) {
         <div className="max-w-site">
           <Fade><p style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#a8a29e", marginBottom: 32 }}>{t("home.ourCollections")}</p></Fade>
           <div className="collections-grid">
-            {COLLECTIONS.map((c, i) => (
+            {CATEGORY_SUMMARIES.map((c, i) => (
               <Fade key={c.name} d={i * 0.06}>
                 <div style={{ cursor: "pointer" }} onClick={() => onNavigate("products", undefined, { category: c.name })}>
                   <div style={{ overflow: "hidden", aspectRatio: "16/9" }}>
-                    <img src={img(c.img)} alt={c.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
+                    <img src={img(c.image)} alt={c.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
                       onMouseOver={e => (e.currentTarget.style.transform = "scale(1.05)")}
                       onMouseOut={e => (e.currentTarget.style.transform = "scale(1)")} />
                   </div>
@@ -643,17 +676,17 @@ function HomePage({ onNavigate }: { onNavigate: NavigateFn }) {
             </div>
           </Fade>
           <div className="products-grid">
-            {PRODUCTS.map((p, i) => (
-              <Fade key={p.name} d={i * 0.1}>
-                <div style={{ cursor: "pointer" }} onClick={() => onNavigate("product", p.productId)}>
+            {FEATURED_PRODUCTS.map((p, i) => (
+              <Fade key={p.id} d={i * 0.1}>
+                <div style={{ cursor: "pointer" }} onClick={() => onNavigate("product", p.id)}>
                   <div style={{ overflow: "hidden", aspectRatio: "4/5" }}>
-                    <img src={img(p.img)} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
+                    <img src={img(p.image)} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
                       onMouseOver={e => (e.currentTarget.style.transform = "scale(1.04)")}
                       onMouseOut={e => (e.currentTarget.style.transform = "scale(1)")} />
                   </div>
                   <div style={{ paddingTop: 14 }}>
                     <p style={{ fontSize: 16, fontWeight: 400, margin: "0 0 5px" }}>{p.name}</p>
-                    <p style={{ fontSize: 11, color: "#a8a29e", margin: 0, letterSpacing: "0.08em" }}>{p.sub}</p>
+                    <p style={{ fontSize: 11, color: "#a8a29e", margin: 0, letterSpacing: "0.08em" }}>{p.cat}&nbsp;&nbsp;·&nbsp;&nbsp;{p.size}</p>
                   </div>
                 </div>
               </Fade>
@@ -662,9 +695,14 @@ function HomePage({ onNavigate }: { onNavigate: NavigateFn }) {
         </div>
       </section>
 
-      {/* ══════════ CTA — THE PERFECT FINISH ══════════ */}
+      {/* ══════════ CTA — THE PERFECT FINISH (SLIDER) ══════════ */}
       <section style={{ position: "relative", height: "clamp(420px,55vw,700px)", overflow: "hidden", display: "flex", alignItems: "flex-end" }}>
-        <img src={img("images/cta_arch.jpg")} alt={t("home.altArchitecture")} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 55%" }} />
+        {CTA_SLIDER_IMAGES.map((src, i) => (
+          <img key={src} src={img(src)} alt={t("home.altArchitecture")} style={{
+            position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 55%",
+            opacity: i === ctaSlide ? 1 : 0, transition: "opacity 1.2s ease",
+          }} />
+        ))}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,transparent 30%,rgba(10,12,10,0.65) 100%)" }} />
         <div className="max-w-site cta-inner" style={{ position: "relative", zIndex: 2, width: "100%", padding: "0 clamp(24px,5vw,64px) clamp(40px,5vw,64px)", display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 24 }}>
           <Fade>
@@ -677,6 +715,16 @@ function HomePage({ onNavigate }: { onNavigate: NavigateFn }) {
               {t("home.freeConsultation")}
             </button>
           </Fade>
+        </div>
+        <div style={{ position: "absolute", bottom: "clamp(20px,3vw,32px)", left: "50%", transform: "translateX(-50%)", zIndex: 3, display: "flex", gap: 10 }}>
+          {CTA_SLIDER_IMAGES.map((_, i) => (
+            <button key={i} onClick={() => goToCtaSlide(i)} aria-label={`اسلاید ${i + 1}`} style={{
+              width: i === ctaSlide ? 22 : 8, height: 8, borderRadius: 999, border: "none", padding: 0, cursor: "pointer",
+              background: i === ctaSlide ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.4)",
+              backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)",
+              transition: "width .35s ease, background .35s ease",
+            }} />
+          ))}
         </div>
       </section>
 

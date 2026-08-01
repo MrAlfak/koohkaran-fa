@@ -37,6 +37,46 @@ export type NavigateOptions = {
 
 export type NavigateFn = (page: Page, id?: number, options?: NavigateOptions) => void;
 
+export function pathForPage(page: Page, id?: number, category?: string | null): string {
+  switch (page) {
+    case "home": return "/";
+    case "about": return "/about";
+    case "contact": return "/contact";
+    case "journal": return "/journal";
+    case "article": return "/journal/article";
+    case "products": return category ? `/products?category=${encodeURIComponent(category)}` : "/products";
+    case "product": return `/products/${id ?? 0}`;
+    case "events": return "/events";
+    case "event": return `/events/${id ?? 0}`;
+  }
+}
+
+export type ParsedLocation = { page: Page; id: number; category: string | null };
+
+export function parseLocation(pathname: string, search: string): ParsedLocation {
+  const parts = pathname.split("/").filter(Boolean);
+  const category = new URLSearchParams(search).get("category");
+
+  if (parts[0] === "about") return { page: "about", id: 0, category: null };
+  if (parts[0] === "contact") return { page: "contact", id: 0, category: null };
+  if (parts[0] === "journal") {
+    return parts[1] === "article"
+      ? { page: "article", id: 0, category: null }
+      : { page: "journal", id: 0, category: null };
+  }
+  if (parts[0] === "products") {
+    return parts[1]
+      ? { page: "product", id: Number(parts[1]) || 0, category: null }
+      : { page: "products", id: 0, category };
+  }
+  if (parts[0] === "events") {
+    return parts[1]
+      ? { page: "event", id: Number(parts[1]) || 0, category: null }
+      : { page: "events", id: 0, category: null };
+  }
+  return { page: "home", id: 0, category: null };
+}
+
 export function ArrowLinkBtn({ children, onClick, light = false }: { children: ReactNode; onClick?: () => void; light?: boolean }) {
   const c = light ? "#fff" : "#1c1917";
   return (
