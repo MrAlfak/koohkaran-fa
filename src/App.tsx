@@ -173,8 +173,8 @@ function Fade({ children, d = 0, style = {} }: { children: React.ReactNode; d?: 
 }
 
 /* ─── data ─── */
-const FEATURED_PRODUCT_IDS = [20, 16, 26];
-const FEATURED_PRODUCTS = FEATURED_PRODUCT_IDS.map(getProduct);
+const SELECTED_PRODUCT_IDS = [16, 36, 46, 35, 29, 43, 18, 12];
+const SELECTED_PRODUCTS = SELECTED_PRODUCT_IDS.map(getProduct);
 
 const CTA_SLIDER_IMAGES = [
   "images/koohkran-slider.webp",
@@ -184,6 +184,233 @@ const CTA_SLIDER_IMAGES = [
   "images/koohkran-slider5.webp",
 ];
 
+const OUR_STONES_IMAGES = [
+  "images/stones/chini-bianco.webp",
+  "images/stones/native-black.webp",
+  "images/stones/turtle-venato.webp",
+  "images/stones/volga-blue.webp",
+  "images/stones/red-travertine.webp",
+  "images/stones/oreo.webp",
+];
+
+/* ─── OUR STONES — scroll-linked image reel ───
+   Uses manually computed fixed/absolute positioning instead of `position: sticky`:
+   an ancestor (`html body { overflow-x: clip }` and HomePage's own `overflowX: hidden`)
+   turns overflow-y into an implicit scroll container per the CSS overflow spec, which
+   breaks sticky positioning. `position: fixed` isn't affected by overflow ancestors. */
+function OurStonesSection() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [pinMode, setPinMode] = useState<"before" | "pinned" | "after">("before");
+  const reduceMotion = useRef(
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  ).current;
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const el = sectionRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      if (rect.top > 0) setPinMode("before");
+      else if (rect.bottom <= vh) setPinMode("after");
+      else setPinMode("pinned");
+
+      const scrollable = rect.height - vh;
+      if (scrollable > 0) {
+        const progress = Math.min(1, Math.max(0, -rect.top / scrollable));
+        const idx = Math.min(OUR_STONES_IMAGES.length - 1, Math.floor(progress * OUR_STONES_IMAGES.length));
+        setActiveIndex(idx);
+      }
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    update();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [reduceMotion]);
+
+  const pinStyle: React.CSSProperties = reduceMotion
+    ? { position: "relative" }
+    : pinMode === "pinned"
+      ? { position: "fixed", top: 0, left: 0, right: 0 }
+      : pinMode === "after"
+        ? { position: "absolute", bottom: 0, left: 0, right: 0 }
+        : { position: "absolute", top: 0, left: 0, right: 0 };
+
+  return (
+    <section ref={sectionRef} aria-label={t("home.ourStones")} style={{ position: "relative", height: reduceMotion ? "auto" : "300vh" }}>
+      <div style={{ ...pinStyle, height: "100vh", overflow: "hidden", display: "flex", alignItems: "center" }}>
+        <div className="max-w-site our-stones-row" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 clamp(24px,6vw,80px)" }}>
+          <h2 className="our-stones-word" style={{ alignSelf: "flex-start" }}>{t("home.ourStonesWord1")}</h2>
+          <div className="our-stones-media">
+            {OUR_STONES_IMAGES.map((src, i) => (
+              <img key={src} src={img(src)} alt={t("home.altStoneSlabs")} className="our-stones-img"
+                style={{ opacity: (reduceMotion ? i === 0 : i === activeIndex) ? 1 : 0 }} />
+            ))}
+          </div>
+          <h2 className="our-stones-word" style={{ alignSelf: "flex-end" }}>{t("home.ourStonesWord2")}</h2>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ─── STONE SPIRAL — photos fly in from off-screen edges, spin, and converge
+   into a single stack at the center while the section stays pinned in place;
+   once fully stacked the section unpins and scrolls away to the next one.
+   Driven purely by scroll position (rAF-lerped for a fluid feel even with a
+   choppy wheel/trackpad), no autoplay. */
+const STONE_SPIRAL_IMAGES = [
+  "images/stones/tuyserkan.webp",
+  "images/stones/black-beauty-lineal.webp",
+  "images/stones/persian-silk.webp",
+  "images/stones/golden-rose.webp",
+  "images/stones/prada.webp",
+];
+
+const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+// each image flies in from a different edge/corner of the screen
+const STONE_SPIRAL_DIRS = [
+  { dx:  0,    dy: -1,    rot: -260, settleRot:  3 },
+  { dx:  1,    dy:  0,    rot:  220, settleRot: -4 },
+  { dx:  0,    dy:  1,    rot: -230, settleRot:  2 },
+  { dx: -1,    dy:  0,    rot:  250, settleRot: -3 },
+  { dx: -0.55, dy: -0.75, rot: -210, settleRot:  4 },
+];
+
+function StoneSpiralSection() {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [progress, setProgress] = useState(0);
+  const [pinMode, setPinMode] = useState<"before" | "pinned" | "after">("before");
+  const [stageSize, setStageSize] = useState(360);
+  const reduceMotion = useRef(
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  ).current;
+
+  useEffect(() => {
+    const measure = () => { if (stageRef.current) setStageSize(stageRef.current.offsetWidth); };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  // Smoothly lerp toward the scroll-derived target every frame instead of
+  // snapping straight to it — keeps the spin fluid on a choppy wheel/trackpad.
+  // Manual fixed/absolute pin (not `position: sticky`) — this site sets
+  // `overflow-x: clip` on html/body and `overflowX: hidden` on HomePage's root,
+  // which per the CSS overflow spec breaks sticky positioning for descendants.
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || reduceMotion) return;
+    let raf = 0;
+    let running = false;
+    let current = 0;
+
+    const target = () => {
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      if (rect.top > 0) setPinMode("before");
+      else if (rect.bottom <= vh) setPinMode("after");
+      else setPinMode("pinned");
+      const scrollable = rect.height - vh;
+      return scrollable > 0 ? Math.min(1, Math.max(0, -rect.top / scrollable)) : 0;
+    };
+
+    const tick = () => {
+      const t = target();
+      current += (t - current) * 0.09;
+      if (Math.abs(t - current) < 0.0006) current = t;
+      setProgress(current);
+      if (running) raf = requestAnimationFrame(tick);
+    };
+
+    const io = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !running) {
+        running = true;
+        raf = requestAnimationFrame(tick);
+      } else if (!entry.isIntersecting && running) {
+        running = false;
+        cancelAnimationFrame(raf);
+        setProgress(target());
+      }
+    }, { rootMargin: "50% 0px 50% 0px" });
+    io.observe(el);
+
+    return () => { io.disconnect(); cancelAnimationFrame(raf); };
+  }, [reduceMotion]);
+
+  const pinStyle: React.CSSProperties = reduceMotion
+    ? { position: "relative" }
+    : pinMode === "pinned"
+      ? { position: "fixed", top: 0, left: 0, right: 0 }
+      : pinMode === "after"
+        ? { position: "absolute", bottom: 0, left: 0, right: 0 }
+        : { position: "absolute", top: 0, left: 0, right: 0 };
+
+  const vw = typeof window !== "undefined" ? window.innerWidth : 1200;
+  const vh = typeof window !== "undefined" ? window.innerHeight : 800;
+  const reach = stageSize / 2 + 80;
+  const textOpacity = reduceMotion ? 0 : Math.max(0, 1 - progress / 0.4);
+
+  const content = (
+    <div style={{ position: "relative", width: "100%", height: "100vh", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ position: "absolute", textAlign: "center", maxWidth: 560, padding: "0 24px", opacity: textOpacity }}>
+        <p style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#a8a29e", marginBottom: 20 }}>
+          {t("home.stoneSpiralEyebrow")}
+        </p>
+        <h2 style={{ fontSize: "clamp(28px,4vw,52px)", fontWeight: 300, margin: "0 0 20px", lineHeight: 1.25, color: "#1c1917" }}>
+          {t("home.stoneSpiralTitle")}
+        </h2>
+        <p style={{ fontSize: 15, color: "#57534e", lineHeight: 1.8, margin: 0 }}>
+          {t("home.stoneSpiralDesc")}
+        </p>
+      </div>
+      <div ref={stageRef} style={{ position: "relative", width: "clamp(260px,34vw,440px)", aspectRatio: "3/2" }}>
+        {STONE_SPIRAL_IMAGES.map((src, i) => {
+          const dir = STONE_SPIRAL_DIRS[i % STONE_SPIRAL_DIRS.length];
+          const local = Math.min(1, Math.max(0, (progress - i * 0.05) / (1 - i * 0.05)));
+          const e = reduceMotion ? 1 : easeOutCubic(local);
+          const startX = dir.dx * (vw * 0.65 + reach);
+          const startY = dir.dy * (vh * 0.65 + reach);
+          const x = reduceMotion ? 0 : startX * (1 - e);
+          const y = reduceMotion ? 0 : startY * (1 - e);
+          const rot = reduceMotion ? dir.settleRot : dir.rot + (dir.settleRot - dir.rot) * e;
+          return (
+            <div key={src} style={{
+              position: "absolute", inset: 0,
+              transform: `translate3d(${x}px, ${y}px, 0) rotate(${rot}deg)`,
+              opacity: Math.min(1, e * 1.3),
+              zIndex: i + 1,
+              boxShadow: "0 20px 50px rgba(0,0,0,0.18)",
+              overflow: "hidden",
+            }}>
+              <img src={img(src)} alt={t("home.altStoneSlabs")} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  if (reduceMotion) {
+    return <section style={{ padding: "clamp(60px,7vw,96px) 0" }}>{content}</section>;
+  }
+
+  return (
+    <section ref={sectionRef} style={{ position: "relative", height: "280vh" }}>
+      <div style={{ ...pinStyle, height: "100vh" }}>{content}</div>
+    </section>
+  );
+}
+
 const STATS = [
   { val: "+۱۰",  label: t("stats.years") },
   { val: "+۲۰۰", label: t("stats.residential") },
@@ -192,8 +419,6 @@ const STATS = [
 ];
 
 const FAQS = fa.faqs;
-
-const TABS = [t("tabs.all"), t("tabs.customHomes"), t("tabs.passiveHouse"), t("tabs.institutional")];
 
 /* ─── SVG logo (exact from SVG file) ─── */
 function KLogo({ size = 44 }: { size?: number }) {
@@ -375,7 +600,6 @@ const PLX_CFG = [
 
 function HomePage({ onNavigate }: { onNavigate: NavigateFn }) {
   const [scrolled, setScrolled] = useState(false);
-  const [openTab, setOpenTab] = useState(0);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [ctaSlide, setCtaSlide] = useState(0);
@@ -627,15 +851,20 @@ function HomePage({ onNavigate }: { onNavigate: NavigateFn }) {
           <div className="collections-grid">
             {CATEGORY_SUMMARIES.map((c, i) => (
               <Fade key={c.name} d={i * 0.06}>
-                <div style={{ cursor: "pointer" }} onClick={() => onNavigate("products", undefined, { category: c.name })}>
-                  <div style={{ overflow: "hidden", aspectRatio: "16/9" }}>
-                    <img src={img(c.image)} alt={c.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
-                      onMouseOver={e => (e.currentTarget.style.transform = "scale(1.05)")}
-                      onMouseOut={e => (e.currentTarget.style.transform = "scale(1)")} />
+                <div className="category-card" style={{ cursor: "pointer" }} onClick={() => onNavigate("products", undefined, { category: c.name })}>
+                  <div className="category-card-media" style={{ aspectRatio: "16/9" }}>
+                    <img className="category-card-img" src={img(c.image)} alt={c.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                    <div className="category-card-overlay" />
+                    <div className="category-card-cta">
+                      <span>{t("home.exploreCategory")}</span>
+                      <svg width="16" height="9" viewBox="0 0 18 10" fill="none" stroke="#fff" strokeWidth="1.3" style={{ transform: "scaleX(-1)" }}>
+                        <line x1="0" y1="5" x2="16" y2="5" /><polyline points="11,1 16,5 11,9" />
+                      </svg>
+                    </div>
                   </div>
                   <div style={{ paddingTop: 14 }}>
-                    <p style={{ fontSize: 16, fontWeight: 400, margin: "0 0 4px" }}>{c.name}</p>
-                    <p style={{ fontSize: 12, color: "#a8a29e", margin: 0 }}>{c.count} {t("home.productsCount")}</p>
+                    <p className="category-card-name" style={{ fontWeight: 400, margin: "0 0 4px" }}>{c.name}</p>
+                    <p className="category-card-count" style={{ fontSize: 12, color: "#a8a29e", margin: 0 }}>{c.count} {t("home.productsCount")}</p>
                   </div>
                 </div>
               </Fade>
@@ -658,7 +887,10 @@ function HomePage({ onNavigate }: { onNavigate: NavigateFn }) {
         </div>
       </section>
 
-      {/* ══════════ SELECTED PRODUCT ══════════ */}
+      {/* ══════════ STONE SPIRAL ══════════ */}
+      <StoneSpiralSection />
+
+      {/* ══════════ SELECTED PRODUCTS ══════════ */}
       <section style={{ padding: "clamp(60px,7vw,96px) clamp(24px,5vw,64px)" }}>
         <div className="max-w-site">
           <Fade>
@@ -667,37 +899,30 @@ function HomePage({ onNavigate }: { onNavigate: NavigateFn }) {
               <h2 style={{ fontSize: "clamp(24px,3vw,36px)", fontWeight: 300, margin: 0 }}>{t("home.selectedProduct")}</h2>
               <ArrowLink href="#" onClick={() => onNavigate("products")}>{t("home.allProducts")}</ArrowLink>
             </div>
-            {/* tabs */}
-            <div className="tabs-row" style={{ display: "flex", gap: 32, marginBottom: 36, borderBottom: "1px solid #f0ede8", flexWrap: "wrap" }}>
-              {TABS.map((tabLabel, i) => (
-                <button key={tabLabel} onClick={() => setOpenTab(i)} style={{
-                  background: "none", border: "none", fontSize: 14, cursor: "pointer", paddingBottom: 12,
-                  color: openTab === i ? "#1c1917" : "#a8a29e",
-                  borderBottom: `2px solid ${openTab === i ? "#1c1917" : "transparent"}`,
-                  marginBottom: -1, transition: "all .2s",
-                }}>{tabLabel}</button>
-              ))}
-            </div>
           </Fade>
-          <div className="products-grid">
-            {FEATURED_PRODUCTS.map((p, i) => (
-              <Fade key={p.id} d={i * 0.1}>
-                <div style={{ cursor: "pointer" }} onClick={() => onNavigate("product", p.id)}>
-                  <div style={{ overflow: "hidden", aspectRatio: "4/5" }}>
-                    <img src={img(p.image)} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
-                      onMouseOver={e => (e.currentTarget.style.transform = "scale(1.04)")}
-                      onMouseOut={e => (e.currentTarget.style.transform = "scale(1)")} />
+          <div className="selected-list">
+            {SELECTED_PRODUCTS.map((p, i) => (
+              <Fade key={p.id} d={i * 0.04}>
+                <div className="selected-list-row" onClick={() => onNavigate("product", p.id)}>
+                  <h3 className="selected-list-name">{p.name}</h3>
+                  <div className="selected-list-meta">
+                    <span className="selected-list-size">{p.size}</span>
+                    <span className="selected-list-colors">{p.colors}</span>
                   </div>
-                  <div style={{ paddingTop: 14 }}>
-                    <p style={{ fontSize: 16, fontWeight: 400, margin: "0 0 5px" }}>{p.name}</p>
-                    <p style={{ fontSize: 11, color: "#a8a29e", margin: 0, letterSpacing: "0.08em" }}>{p.cat}&nbsp;&nbsp;·&nbsp;&nbsp;{p.size}</p>
-                  </div>
+                  <span className="selected-list-arrow" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.3">
+                      <line x1="3" y1="15" x2="15" y2="3" /><polyline points="6,3 15,3 15,12" />
+                    </svg>
+                  </span>
                 </div>
               </Fade>
             ))}
           </div>
         </div>
       </section>
+
+      {/* ══════════ OUR STONES ══════════ */}
+      <OurStonesSection />
 
       {/* ══════════ CTA — THE PERFECT FINISH (SLIDER) ══════════ */}
       <section style={{ position: "relative", height: "clamp(420px,55vw,700px)", overflow: "hidden", display: "flex", alignItems: "flex-end" }}>

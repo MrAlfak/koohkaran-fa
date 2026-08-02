@@ -2,6 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Modam (site display font; Vazirmatn stays as the Persian-glyph fallback) ─── */
+@font-face {
+  font-family: "Modam";
+  src: url("/Font/Modam-ExtraLight.ttf") format("truetype");
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Modam";
+  src: url("/Font/Modam-Light.ttf") format("truetype");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Modam";
+  src: url("/Font/Modam-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Modam";
+  src: url("/Font/Modam-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Modam";
+  src: url("/Font/Modam-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Modam";
+  src: url("/Font/Modam-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Modam";
+  src: url("/Font/Modam-ExtraBold.ttf") format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Modam";
+  src: url("/Font/Modam-Black.ttf") format("truetype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -68,7 +126,7 @@
   body {
     @apply bg-background text-foreground;
     overflow-x: clip;
-    font-family: "Vazirmatn", "Helvetica Neue", Arial, sans-serif;
+    font-family: "Modam", "Vazirmatn", "Helvetica Neue", Arial, sans-serif;
   }
 }
 
@@ -241,6 +299,167 @@
 }
 @media (min-width: 1921px) {
   .collections-grid { grid-template-columns: repeat(6, 1fr); }
+}
+
+/* ── Category card hover reveal ── */
+.category-card-media {
+  position: relative;
+  overflow: hidden;
+}
+.category-card-img {
+  transition: transform .7s cubic-bezier(.2,.7,.2,1);
+}
+.category-card:hover .category-card-img {
+  transform: scale(1.1);
+}
+.category-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(0,0,0,0.32) 100%);
+  opacity: 0;
+  transition: opacity .5s ease;
+  pointer-events: none;
+}
+.category-card:hover .category-card-overlay {
+  opacity: 1;
+}
+.category-card-cta {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translate(-50%, 14px);
+  opacity: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border: 1px solid rgba(255,255,255,0.7);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  transition: opacity .45s ease, transform .45s cubic-bezier(.2,.7,.2,1);
+  pointer-events: none;
+}
+.category-card:hover .category-card-cta {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+.category-card-name {
+  display: inline-block;
+  font-size: 16px;
+  transition: font-size .35s cubic-bezier(.2,.7,.2,1), color .35s ease;
+}
+.category-card:hover .category-card-name {
+  font-size: 19px;
+}
+.category-card-count {
+  transition: opacity .35s ease;
+}
+.category-card:hover .category-card-count {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .category-card-img, .category-card-overlay, .category-card-cta, .category-card-name, .category-card-count {
+    transition: none !important;
+  }
+}
+
+/* ── Our Stones scroll reel ── */
+.our-stones-word {
+  font-weight: 300;
+  font-size: clamp(40px, 8vw, 130px);
+  line-height: 1;
+  color: #1c1917;
+  margin: 0;
+  white-space: nowrap;
+}
+.our-stones-media {
+  position: relative;
+  width: clamp(180px, 20vw, 320px);
+  aspect-ratio: 4 / 5;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+}
+.our-stones-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+@media (max-width: 767px) {
+  .our-stones-row { flex-direction: column !important; gap: 24px; }
+  .our-stones-word { font-size: clamp(36px, 11vw, 56px) !important; }
+  .our-stones-media { width: clamp(160px, 55vw, 220px) !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .our-stones-img { transition: none !important; }
+}
+
+/* ── Selected products list ── */
+.selected-list-row {
+  display: grid;
+  grid-template-columns: 1.6fr 1.4fr 24px;
+  align-items: center;
+  gap: 20px;
+  padding: 22px 0;
+  border-top: 1px solid #e7e5e4;
+  cursor: pointer;
+  transition: background-color .25s ease;
+}
+.selected-list-row:last-child {
+  border-bottom: 1px solid #e7e5e4;
+}
+.selected-list-row:hover {
+  background: #fafaf9;
+}
+.selected-list-name {
+  font-size: 17px;
+  font-weight: 400;
+  color: #1c1917;
+  margin: 0;
+}
+.selected-list-meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.selected-list-size,
+.selected-list-colors {
+  font-size: 13px;
+  color: #78716c;
+  margin: 0;
+  white-space: nowrap;
+}
+.selected-list-colors {
+  color: #a8a29e;
+}
+.selected-list-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #a8a29e;
+  transition: color .25s ease, transform .25s ease;
+}
+.selected-list-row:hover .selected-list-arrow {
+  color: #1c1917;
+  transform: translate(2px, -2px);
+}
+@media (max-width: 639px) {
+  .selected-list-row { grid-template-columns: 1fr 24px; row-gap: 8px; }
+  .selected-list-meta { grid-column: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .selected-list-arrow { transition: none; }
 }
 
 /* ── Products grid ── */

@@ -18,7 +18,7 @@ export const FOOTER_LINKS = [
   ["process", t("nav.ourProcess"), "journal", t("nav.journal")],
 ] as const;
 
-export const FONT_FAMILY = "'Vazirmatn', 'Helvetica Neue', Arial, sans-serif";
+export const FONT_FAMILY = "'Modam', 'Vazirmatn', 'Helvetica Neue', Arial, sans-serif";
 
 export type Page =
   | "home"
