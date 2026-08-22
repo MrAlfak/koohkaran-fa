@@ -14,6 +14,8 @@ export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
 export type Product = {
   id: number;
   code: string;
+  /** English URL slug — the product's public address (/products/<slug>) */
+  slug: string;
   name: string;
   cat: string;
   stoneType?: string;
@@ -31,6 +33,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 1,
     "code": "KK-C-101",
+    "slug": "persian-bianco",
     "name": "پرشین بیانکو",
     "cat": "ماربل",
     "stoneType": "کریستال",
@@ -46,6 +49,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 2,
     "code": "KK-G-102",
+    "slug": "persian-zebra",
     "name": "پرشین زبرا",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -61,6 +65,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 3,
     "code": "KK-G-103",
+    "slug": "native-black-super-rock",
     "name": "نیتیو بلک سوپر راک",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -76,6 +81,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 4,
     "code": "KK-G-104",
+    "slug": "tuyserkan",
     "name": "تویسرکان",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -91,6 +97,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 5,
     "code": "KK-Q-105",
+    "slug": "black-horse-rock",
     "name": "بلک هورس راک",
     "cat": "کوارتزیت",
     "stoneType": "کوارتزیت",
@@ -106,6 +113,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 6,
     "code": "KK-C-106",
+    "slug": "silver-stream-rock",
     "name": "سیلور استریم راک",
     "cat": "ماربل",
     "stoneType": "کریستال",
@@ -121,6 +129,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 7,
     "code": "KK-G-107",
+    "slug": "leathered-matrix",
     "name": "لدرد ماتریکس",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -136,6 +145,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 8,
     "code": "KK-M-108",
+    "slug": "turtle-venato",
     "name": "ترتل وناتو",
     "cat": "ماربل",
     "stoneType": "ماربل فسیلی",
@@ -151,6 +161,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 9,
     "code": "KK-C-109",
+    "slug": "persian-maya",
     "name": "پرشین مایا",
     "cat": "ماربل",
     "stoneType": "کریستال",
@@ -166,6 +177,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 11,
     "code": "KK-G-111",
+    "slug": "alpinus-granite",
     "name": "آلپینوس گرانیت",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -181,6 +193,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 12,
     "code": "KK-T-112",
+    "slug": "red-travertine",
     "name": "قرمز تراورتن",
     "cat": "تراورتن",
     "stoneType": "تراورتن",
@@ -196,6 +209,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 13,
     "code": "KK-C-113",
+    "slug": "persian-panda",
     "name": "پرشین پاندا",
     "cat": "ماربل",
     "stoneType": "کریستال",
@@ -211,6 +225,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 14,
     "code": "KK-Q-114",
+    "slug": "copacabana",
     "name": "کوپاکابانا",
     "cat": "کوارتزیت",
     "stoneType": "کوارتزیت",
@@ -226,6 +241,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 15,
     "code": "KK-M-115",
+    "slug": "pietra-grey-lashtar",
     "name": "پیاترا گری (لاشتار)",
     "cat": "ماربل",
     "stoneType": "مرمر",
@@ -241,6 +257,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 16,
     "code": "KK-M-116",
+    "slug": "3d-black",
     "name": "تری‌دی بلک",
     "cat": "ماربل",
     "stoneType": "مرمر",
@@ -256,6 +273,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 17,
     "code": "KK-Q-117",
+    "slug": "red-collins",
     "name": "رد کالینز",
     "cat": "کوارتزیت",
     "stoneType": "کوارتزیت",
@@ -271,6 +289,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 18,
     "code": "KK-S-118",
+    "slug": "royal-blackwood",
     "name": "رویال بلک وود",
     "cat": "سنگ نیمه‌قیمتی",
     "stoneType": "ابسیدین",
@@ -286,6 +305,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 19,
     "code": "KK-G-119",
+    "slug": "algae-hard",
     "name": "آلگی هارد",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -301,6 +321,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 20,
     "code": "KK-G-120",
+    "slug": "algae-cotton",
     "name": "آلگی کاتن",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -316,6 +337,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 21,
     "code": "KK-Q-121",
+    "slug": "infinity-gold",
     "name": "اینفینیتی گلد",
     "cat": "کوارتزیت",
     "stoneType": "کوارتزیت",
@@ -331,6 +353,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 22,
     "code": "KK-C-122",
+    "slug": "aligoudarz-crystal",
     "name": "الیگودرز کریستال",
     "cat": "ماربل",
     "stoneType": "کریستال",
@@ -346,6 +369,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 23,
     "code": "KK-B-123",
+    "slug": "black-basalt",
     "name": "بلک بازالت",
     "cat": "بازالت",
     "stoneType": "بازالت",
@@ -361,6 +385,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 24,
     "code": "KK-G-124",
+    "slug": "natanz-leathered-black-granite-grade-a",
     "name": "نطنز چرمی بلک گرانیت (گرید A)",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -376,6 +401,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 25,
     "code": "KK-C-125",
+    "slug": "diamond-silk-crystal",
     "name": "دایموند سیلک کریستال",
     "cat": "ماربل",
     "stoneType": "کریستال",
@@ -391,6 +417,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 26,
     "code": "KK-G-126",
+    "slug": "white-natanz-lineal",
     "name": "وایت نطنز لینیال",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -406,6 +433,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 27,
     "code": "KK-G-127",
+    "slug": "birjand-leathered-green-granite",
     "name": "بیرجند لدرد گرین گرانیت",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -421,6 +449,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 28,
     "code": "KK-Q-128",
+    "slug": "black-tempest",
     "name": "بلک تمپست",
     "cat": "کوارتزیت",
     "stoneType": "کوارتزیت",
@@ -436,6 +465,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 29,
     "code": "KK-Q-129",
+    "slug": "oreo",
     "name": "اوریو",
     "cat": "کوارتزیت",
     "stoneType": "کوارتزیت",
@@ -451,6 +481,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 30,
     "code": "KK-C-130",
+    "slug": "ichkat-blue",
     "name": "ایچکت بلو",
     "cat": "ماربل",
     "stoneType": "کریستال",
@@ -466,6 +497,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 31,
     "code": "KK-C-131",
+    "slug": "prada-crystal",
     "name": "پرادا کریستال",
     "cat": "ماربل",
     "stoneType": "کریستال",
@@ -481,6 +513,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 32,
     "code": "KK-G-132",
+    "slug": "black-beauty-lineal",
     "name": "بلک بیوتی لینیال",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -496,6 +529,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 33,
     "code": "KK-M-133",
+    "slug": "persian-silk",
     "name": "پرشین سیلک",
     "cat": "ماربل",
     "stoneType": "مرمر",
@@ -511,6 +545,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 34,
     "code": "KK-M-134",
+    "slug": "marble-rose",
     "name": "ماربل رز",
     "cat": "ماربل",
     "stoneType": "مرمر",
@@ -526,6 +561,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 35,
     "code": "KK-G-135",
+    "slug": "indian-black-forest",
     "name": "ایندیان بلک فورست",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -541,6 +577,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 36,
     "code": "KK-G-136",
+    "slug": "volga-blue",
     "name": "ولگا بلو",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -556,6 +593,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 37,
     "code": "KK-G-137",
+    "slug": "leathered-green-granite",
     "name": "لدرد گرین گرانیت",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -571,6 +609,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 38,
     "code": "KK-T-138",
+    "slug": "cream-leathered-travertine",
     "name": "کریم لدرد تراورتن",
     "cat": "تراورتن",
     "stoneType": "تراورتن",
@@ -586,6 +625,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 39,
     "code": "KK-T-139",
+    "slug": "cream-raw-vein-cut-travertine",
     "name": "کریم را وین-کات تراورتن",
     "cat": "تراورتن",
     "stoneType": "تراورتن",
@@ -601,6 +641,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 40,
     "code": "KK-T-140",
+    "slug": "tiramisu-travertine",
     "name": "تیرامیسو تراورتن",
     "cat": "تراورتن",
     "stoneType": "تراورتن",
@@ -616,6 +657,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 41,
     "code": "KK-G-141",
+    "slug": "patagonia-black",
     "name": "پاتاگونیا بلک",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -631,6 +673,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 42,
     "code": "KK-Q-142",
+    "slug": "jacaranda",
     "name": "ژاکاراندا",
     "cat": "کوارتزیت",
     "stoneType": "کوارتزیت",
@@ -646,6 +689,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 43,
     "code": "KK-G-143",
+    "slug": "turquoise-granite",
     "name": "تورکواز گرانیت (فیروزه‌ای)",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -661,6 +705,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 44,
     "code": "KK-M-144",
+    "slug": "golden-olive",
     "name": "گولدن اولیو",
     "cat": "ماربل",
     "stoneType": "مرمر",
@@ -676,6 +721,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 45,
     "code": "KK-M-145",
+    "slug": "persian-scato",
     "name": "پرشین اسکاتو",
     "cat": "ماربل",
     "stoneType": "مرمر",
@@ -691,6 +737,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 46,
     "code": "KK-C-146",
+    "slug": "thassos-white",
     "name": "تاسوس وایت",
     "cat": "ماربل",
     "stoneType": "کریستال",
@@ -706,6 +753,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 47,
     "code": "KK-C-147",
+    "slug": "jaguar-crystal",
     "name": "جگوار کریستال",
     "cat": "ماربل",
     "stoneType": "کریستال",
@@ -721,6 +769,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 48,
     "code": "KK-Q-148",
+    "slug": "magma-gold",
     "name": "ماگما گلد",
     "cat": "کوارتزیت",
     "stoneType": "کوارتزیت",
@@ -736,6 +785,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 49,
     "code": "KK-G-149",
+    "slug": "alpinus-rock",
     "name": "راک آلپینوس",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -751,6 +801,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 50,
     "code": "KK-B-150",
+    "slug": "light-mars-andesite",
     "name": "لایت مارس آندزیت",
     "cat": "بازالت",
     "stoneType": "آندزیت",
@@ -766,6 +817,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 51,
     "code": "KK-G-151",
+    "slug": "matte-black-sea",
     "name": "مات بلک سی",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -781,6 +833,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 52,
     "code": "KK-G-152",
+    "slug": "natanz-white-cotton",
     "name": "نطنز وایت کاتن",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -796,6 +849,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 53,
     "code": "KK-G-153",
+    "slug": "natanz-white-scratch",
     "name": "نطنز وایت اسکرچ",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -811,6 +865,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 54,
     "code": "KK-M-154",
+    "slug": "cream-marble-lineal",
     "name": "کریم ماربل لینیال",
     "cat": "ماربل",
     "stoneType": "مرمر",
@@ -826,6 +881,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 55,
     "code": "KK-G-155",
+    "slug": "leathered-black-diamond",
     "name": "لدرد بلک دایموند",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -841,6 +897,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 56,
     "code": "KK-G-156",
+    "slug": "tuyserkan-honed-granite",
     "name": "تویسرکان هوند گرانیت",
     "cat": "گرانیت",
     "stoneType": "گرانیت",
@@ -856,6 +913,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 57,
     "code": "KK-M-157",
+    "slug": "golden-rose",
     "name": "گلدن رز",
     "cat": "ماربل",
     "stoneType": "مرمر",
@@ -871,6 +929,7 @@ export const PRODUCTS: Product[] = [
   {
     "id": 58,
     "code": "KK-C-158",
+    "slug": "azna",
     "name": "ازنا",
     "cat": "ماربل",
     "stoneType": "کریستال",
@@ -887,6 +946,15 @@ export const PRODUCTS: Product[] = [
 
 export function getProduct(id: number): Product {
   return PRODUCTS.find(p => p.id === id) ?? PRODUCTS[0];
+}
+
+export function getProductBySlug(slug: string): Product | undefined {
+  const s = slug.toLowerCase();
+  return PRODUCTS.find(p => p.slug === s);
+}
+
+export function productSlug(id: number): string {
+  return PRODUCTS.find(p => p.id === id)?.slug ?? String(id);
 }
 
 export type CategorySummary = { name: ProductCategory; count: number; image: string };

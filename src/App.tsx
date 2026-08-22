@@ -29,32 +29,31 @@ function useFade(threshold = 0.08) {
   }, []);
   return { ref, v };
 }
-/* ─── icon wipe-draw ─── */
+/* ─── icon wipe-draw: replays every time the icon scrolls into view ─── */
 function WipeDraw({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
   const ref = useRef<HTMLDivElement>(null);
-  const triggered = useRef(false);
   useEffect(() => {
     const el = ref.current;
     if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let timer: ReturnType<typeof setTimeout>;
     el.style.clipPath = "inset(0 0 0 100%)";
-    function trigger() {
-      if (triggered.current) return;
-      triggered.current = true;
-      setTimeout(() => {
-        if (!el) return;
+    const show = () => {
+      timer = setTimeout(() => {
         el.style.transition = `clip-path 1.4s cubic-bezier(.4,0,.2,1)`;
         el.style.clipPath = "inset(0 0% 0 0)";
       }, delay);
-    }
+    };
+    const hide = () => {
+      clearTimeout(timer);
+      el.style.transition = "none";
+      el.style.clipPath = "inset(0 0 0 100%)";
+    };
     const o = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { trigger(); o.disconnect(); }
+      if (e.isIntersecting) show(); else hide();
     }, { threshold: 0 });
     o.observe(el);
-    // fallback: if already in viewport when effect runs
-    const r = el.getBoundingClientRect();
-    if (r.top < window.innerHeight && r.bottom > 0) trigger();
-    return () => o.disconnect();
-  }, []);
+    return () => { clearTimeout(timer); o.disconnect(); };
+  }, [delay]);
   return <div ref={ref}>{children}</div>;
 }
 
@@ -490,7 +489,12 @@ function PageTransition({ page }: { page: Page }) {
 
   useEffect(() => {
     requestAnimationFrame(() => setVisible(true));
-  }, []);
+    // an old /products/<id> link still resolves; rewrite the bar to the slug URL
+    if (initialLocation.page === "product" && initialLocation.id) {
+      const canonical = pathForPage("product", initialLocation.id);
+      if (window.location.pathname !== canonical) window.history.replaceState({}, "", canonical);
+    }
+  }, [initialLocation]);
 
   useEffect(() => {
     const onPopState = () => {
@@ -698,14 +702,14 @@ function HomePage({ onNavigate }: { onNavigate: NavigateFn }) {
 
       {/* ══════════ NAV ══════════ */}
       <header style={{
-        position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: menuOpen ? 210 : 100,
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "clamp(12px,2vw,20px) clamp(24px,5vw,64px)",
-        background: scrolled || menuOpen ? "rgba(255,255,255,0.98)" : "transparent",
-        backdropFilter: scrolled || menuOpen ? "blur(10px)" : "none",
-        WebkitBackdropFilter: scrolled || menuOpen ? "blur(10px)" : "none",
+        background: menuOpen ? "rgba(255,255,255,0.28)" : scrolled ? "rgba(255,255,255,0.5)" : "transparent",
+        backdropFilter: scrolled || menuOpen ? "blur(18px) saturate(180%)" : "none",
+        WebkitBackdropFilter: scrolled || menuOpen ? "blur(18px) saturate(180%)" : "none",
         transition: "background .35s ease, box-shadow .35s ease",
-        boxShadow: scrolled ? "0 1px 0 rgba(0,0,0,0.06)" : "none",
+        boxShadow: scrolled && !menuOpen ? "0 1px 0 rgba(0,0,0,0.06)" : "none",
       }}>
         <button onClick={() => { setMenuOpen(false); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, zIndex: 201 }}>
           <KLogo size={42} />

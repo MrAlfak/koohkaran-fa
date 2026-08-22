@@ -39,21 +39,22 @@ export function SiteHeader({
   const isSoft = tone === "soft";
   const headerScrolled = isHero ? (heroScrolled ?? scrolled) : scrolled;
   const navColor = isHero && !headerScrolled ? "#fff" : tone === "filled" ? "#57534e" : "#292524";
-  const headerBg =
-    tone === "filled" || headerScrolled || menuOpen
-      ? "rgba(255,255,255,0.97)"
+  const headerBg = menuOpen
+    ? "rgba(255,255,255,0.28)"
+    : tone === "filled" || headerScrolled
+      ? "rgba(255,255,255,0.5)"
       : isHero
         ? "transparent"
         : isSoft
-          ? "rgba(255,255,255,0.72)"
-          : "rgba(255,255,255,0.97)";
+          ? "rgba(255,255,255,0.4)"
+          : "rgba(255,255,255,0.5)";
   const headerShadow =
-    headerScrolled || menuOpen || tone === "filled"
+    (headerScrolled || tone === "filled") && !menuOpen
       ? "0 1px 0 rgba(0,0,0,0.06)"
-      : isSoft
+      : isSoft && !menuOpen
         ? "0 1px 0 rgba(0,0,0,0.03)"
         : "none";
-  const headerBlur = headerScrolled || menuOpen || tone === "filled" || isSoft ? "blur(14px)" : isHero ? undefined : "blur(14px)";
+  const headerBlur = headerScrolled || menuOpen || tone === "filled" || isSoft ? "blur(18px) saturate(180%)" : isHero ? undefined : "blur(18px) saturate(180%)";
 
   const go = (key: NavKey) => {
     setMenuOpen(false);
@@ -89,7 +90,7 @@ export function SiteHeader({
           top: 0,
           left: 0,
           right: 0,
-          zIndex: 100,
+          zIndex: menuOpen ? 210 : 100,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -145,7 +146,7 @@ export function SiteHeader({
           className={`menu-btn${menuOpen ? " open" : ""}`}
           aria-label={t("nav.menu")}
           onClick={() => setMenuOpen((o) => !o)}
-          style={{ color: isHero && !headerScrolled ? "#fff" : "#1c1917" }}
+          style={{ color: isHero && !headerScrolled && !menuOpen ? "#fff" : "#1c1917" }}
         >
           <span />
           <span />

@@ -5,6 +5,7 @@ import { t } from "./i18n";
 import { FONT_FAMILY, ArrowLinkBtn, type NavigateFn } from "./shared/nav";
 import { SiteFooter } from "./shared/SiteFooter";
 import { SiteHeader } from "./shared/SiteHeader";
+import ProductHeroReveal from "./components/ProductHeroReveal";
 import React from "react";
 
 function useFade(threshold = 0.08) {
@@ -45,16 +46,13 @@ export default function ProductDetailPage({ onNavigate, productId }: { onNavigat
 
       <section style={{ padding: "clamp(120px,14vw,180px) clamp(24px,5vw,64px) clamp(28px,3.5vw,44px)", textAlign: "center" }}>
         <Fade>
-          <h1 style={{ fontSize: "clamp(30px,4vw,56px)", fontWeight: 300, lineHeight: 1.1, margin: "0 0 16px", color: "#1c1917" }}>{product.name}</h1>
           <p style={{ fontSize: 12, letterSpacing: "0.2em", textTransform: "uppercase", color: "#a8a29e", margin: 0 }}>{product.code}&nbsp;&nbsp;·&nbsp;&nbsp;{product.cat}</p>
         </Fade>
       </section>
 
       <section style={{ padding: "0 clamp(24px,5vw,64px)" }}>
         <Fade>
-          <div style={{ maxWidth: 1240, margin: "0 auto", overflow: "hidden" }}>
-            <img src={img(product.heroImage)} alt={product.name} style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", display: "block" }} />
-          </div>
+          <ProductHeroReveal key={product.id} src={img(product.heroImage)} alt={product.name} title={product.name} />
         </Fade>
       </section>
 
@@ -78,14 +76,16 @@ export default function ProductDetailPage({ onNavigate, productId }: { onNavigat
       <section style={{ padding: "clamp(40px,5vw,72px) clamp(24px,5vw,64px) clamp(32px,4vw,56px)", textAlign: "center" }}>
         <Fade>
           <h2 style={{ fontSize: "clamp(24px,2.8vw,40px)", fontWeight: 300, margin: "0 0 14px", color: "#1c1917" }}>{t("products.productDetails")}</h2>
-          <p style={{ fontSize: 11, letterSpacing: "0.18em", textTransform: "uppercase", color: "#a8a29e", margin: 0 }}>{product.code}&nbsp;&nbsp;·&nbsp;&nbsp;{product.name}</p>
+          {product.description && (
+            <p style={{ fontSize: 15, lineHeight: 1.8, color: "#57534e", maxWidth: 720, margin: "0 auto" }}>{product.description}</p>
+          )}
         </Fade>
       </section>
 
       <section style={{ padding: "0 clamp(24px,5vw,64px) clamp(60px,8vw,110px)" }}>
         <Fade>
           <div style={{ maxWidth: 1240, margin: "0 auto", overflow: "hidden" }}>
-            <img src={img(product.detailImage)} alt={product.name} style={{ width: "100%", aspectRatio: "3/2", objectFit: "cover", display: "block" }} />
+            <img src={img(product.detailImage)} alt={`${product.name} - جزئیات`} loading="lazy" decoding="async" style={{ width: "100%", aspectRatio: "3/2", objectFit: "cover", display: "block" }} />
           </div>
         </Fade>
       </section>
@@ -101,7 +101,7 @@ export default function ProductDetailPage({ onNavigate, productId }: { onNavigat
               <Fade key={p.name} d={i * 0.08}>
                 <div style={{ cursor: "pointer" }} onClick={() => onNavigate("product", p.id)}>
                   <div style={{ overflow: "hidden", marginBottom: 16, aspectRatio: "4/3" }}>
-                    <img src={img(p.image)} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
+                    <img src={img(p.image)} alt={p.name} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transition: "transform .6s ease" }}
                       onMouseOver={e => (e.currentTarget.style.transform = "scale(1.05)")}
                       onMouseOut={e => (e.currentTarget.style.transform = "scale(1)")} />
                   </div>

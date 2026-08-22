@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { t } from "../i18n";
+import { getProductBySlug, productSlug } from "../products";
 
 export const NAV_ITEMS = [
   { key: "home", label: t("nav.home") },
@@ -45,7 +46,7 @@ export function pathForPage(page: Page, id?: number, category?: string | null): 
     case "journal": return "/journal";
     case "article": return "/journal/article";
     case "products": return category ? `/products?category=${encodeURIComponent(category)}` : "/products";
-    case "product": return `/products/${id ?? 0}`;
+    case "product": return `/products/${productSlug(id ?? 0)}`;
     case "events": return "/events";
     case "event": return `/events/${id ?? 0}`;
   }
@@ -65,9 +66,11 @@ export function parseLocation(pathname: string, search: string): ParsedLocation 
       : { page: "journal", id: 0, category: null };
   }
   if (parts[0] === "products") {
-    return parts[1]
-      ? { page: "product", id: Number(parts[1]) || 0, category: null }
-      : { page: "products", id: 0, category };
+    if (!parts[1]) return { page: "products", id: 0, category };
+    const slug = decodeURIComponent(parts[1]);
+    // slug is the canonical form; a bare number keeps old /products/<id> links working
+    const id = getProductBySlug(slug)?.id ?? (Number(slug) || 0);
+    return { page: "product", id, category: null };
   }
   if (parts[0] === "events") {
     return parts[1]
