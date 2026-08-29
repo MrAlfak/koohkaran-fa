@@ -5,7 +5,7 @@ const SOCIAL_LINKS = [
   {
     id: "instagram",
     label: t("nav.instagram"),
-    href: "https://instagram.com/koohkaran",
+    href: "https://www.instagram.com/slabmarket_koohkaran?igsi=MTA5MXBlbms2YmRnbg==",
     color: "#E1306C",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -30,7 +30,7 @@ const SOCIAL_LINKS = [
   {
     id: "telegram",
     label: t("nav.telegram"),
-    href: "https://t.me/koohkaran",
+    href: "https://t.me/peymanrnd",
     color: "#229ED9",
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

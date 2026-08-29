@@ -43,7 +43,18 @@ export function BackgroundMusicProvider({ children }: { children: React.ReactNod
     audio.loop = true;
     audio.volume = 0.3;
     audio.muted = muted;
-    if (!muted) tryPlay();
+    if (muted) return;
+    /*
+      موسیقی پس‌زمینه ۴۵۰ کیلوبایت است و حالا که المنت audio چیزی را از پیش
+      بارگذاری نمی‌کند، همان فراخوانی play() است که دانلود را شروع می‌کند.
+      درخواست آن در اولین رندر، رسم شدن صفحه را نزدیک یک ثانیه عقب می‌انداخت —
+      و نور روی سنگ پیش از رسم شدن صفحه نمی‌تواند شروع شود — پس تلاش برای پخش
+      تا بی‌کار شدن مرورگر صبر می‌کند. در هر صورت پخش خودکار در همه مرورگرهای
+      اصلی نیازمند تعامل کاربر است و جایی که مجاز باشد فقط کمی دیرتر می‌شود.
+    */
+    const idle = "requestIdleCallback" in window ? window.requestIdleCallback.bind(window) : undefined;
+    const id = idle ? idle(() => tryPlay(), { timeout: 2000 }) : window.setTimeout(tryPlay, 800);
+    return () => { if (idle) window.cancelIdleCallback(id as number); else clearTimeout(id as number); };
   }, [muted, tryPlay]);
 
   useEffect(() => {
@@ -77,7 +88,8 @@ export function BackgroundMusicProvider({ children }: { children: React.ReactNod
 
   return (
     <BackgroundMusicContext.Provider value={{ muted, toggleMute }}>
-      <audio ref={audioRef} src={img("audio/background.mp3")} preload="auto" />
+      {/* preload="none": تا وقتی چیزی play() را صدا نزند، هیچ داده‌ای دانلود نمی‌شود */}
+      <audio ref={audioRef} src={img("audio/background.mp3")} preload="none" />
       {children}
     </BackgroundMusicContext.Provider>
   );

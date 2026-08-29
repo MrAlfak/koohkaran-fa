@@ -88,8 +88,8 @@ export default function ContactPage({ onNavigate }: Props) {
     <div style={{ fontFamily: FONT_FAMILY, background: "#fff", color: "#1c1917", minHeight: "100vh" }}>
       <SiteHeader onNavigate={onNavigate} activeKey="contact" tone="filled" />
 
-      <div className="contact-split" style={{ paddingTop: 80, display: "grid", gridTemplateColumns: "1fr 1fr", minHeight: "100vh" }}>
-        <div style={{ padding: "clamp(60px,8vw,100px) clamp(32px,5vw,80px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+      <div className="contact-split" style={{ paddingTop: 80 }}>
+        <div style={{ padding: "clamp(48px,8vw,100px) clamp(24px,5vw,80px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
           <p style={{ fontSize: 11, letterSpacing: "0.2em", textTransform: "uppercase", color: "#a8a29e", marginBottom: 20 }}>{t("contact.label")}</p>
           <h1 style={{ fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 300, margin: "0 0 12px", lineHeight: 1.2 }}>{t("contact.title")}</h1>
           <p style={{ fontSize: 14, color: "#78716c", lineHeight: 1.7, marginBottom: 48, maxWidth: 440 }}>
@@ -103,7 +103,7 @@ export default function ContactPage({ onNavigate }: Props) {
             </div>
           ) : (
             <form onSubmit={handleSubmit} noValidate>
-              <div className="contact-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 20px" }}>
+              <div className="contact-form-grid">
                 <Input label={t("contact.fullName")} name="name" value={form.name} onChange={setField("name")} error={errors.name} />
                 <Input label={t("contact.email")} type="email" name="email" value={form.email} onChange={setField("email")} error={errors.email} />
                 <Input label={t("contact.phone")} type="tel" name="phone" value={form.phone} onChange={setField("phone")} />
@@ -160,7 +160,7 @@ export default function ContactPage({ onNavigate }: Props) {
             </form>
           )}
 
-          <div style={{ marginTop: 56, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px 40px" }}>
+          <div className="contact-info" style={{ marginTop: 56 }}>
             {[
               { label: t("contact.emailLabel"), val: "info@koohkaran.com" },
               { label: t("contact.phoneLabel"), val: "۰۹۱۷۳۰۹۰۰۰۰" },
@@ -175,7 +175,7 @@ export default function ContactPage({ onNavigate }: Props) {
           </div>
         </div>
 
-        <div style={{ position: "relative", overflow: "hidden" }}>
+        <div className="contact-media" style={{ position: "relative", overflow: "hidden" }}>
           <img src={img("images/contact_img_1.jpg")} alt={t("contact.title")} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to left, rgba(255,255,255,0.06) 0%, transparent 40%)" }} />
         </div>

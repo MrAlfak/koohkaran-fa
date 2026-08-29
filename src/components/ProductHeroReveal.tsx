@@ -29,7 +29,7 @@ loadStoneLight();
 */
 
 const HOLD = 0.15;   // beat before the light arrives
-const SWEEP = 6.2;   // light crossing the frame
+const SWEEP = 14;    // light crossing the frame
 const GAP = 0;       // beat of full colour before the wash
 const LINE = 2.2;    // the name drawing itself in outline
 const OVERLAP = 2.4; // the outline starts well before the light has finished
@@ -126,9 +126,11 @@ export default function ProductHeroReveal({ src, alt, title }: { src: string; al
 
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ paused: true });
-      // sine is the gentlest of the built-ins — no visible kick at either end,
-      // which is what sells the light as drifting rather than being swiped
-      const ease = "sine.inOut";
+      // Constant speed. An ease would spend its slow half off the frame, so the
+      // light would sit out of sight for seconds before appearing and then hurry
+      // across; with the band starting just outside the frame there is no kick to
+      // smooth away, and a real raking light travels at a steady rate anyway.
+      const ease = "none";
 
       // one uniform carries the whole light pass; the shader does the rest
       const sweep = { p: 0 };

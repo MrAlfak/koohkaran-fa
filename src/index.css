@@ -231,8 +231,10 @@
   inset: 0;
   z-index: 200;
   background: rgba(255,255,255,0.28);
+  /* the minifier folds a hand-written -webkit- twin into one declaration and
+     keeps the prefixed one, which leaves Chrome with nothing to apply; let the
+     build add whatever prefixes the targets need */
   backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
   border-left: 1px solid rgba(255,255,255,0.4);
   display: flex;
   flex-direction: column;
@@ -248,6 +250,29 @@
   opacity: 1;
   pointer-events: all;
 }
+.mobile-menu-close {
+  position: absolute;
+  top: clamp(16px,2.5vw,24px);
+  left: clamp(24px,5vw,64px);
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.mobile-menu-close span {
+  position: absolute;
+  width: 22px;
+  height: 1.5px;
+  background: #1c1917;
+  border-radius: 1px;
+}
+.mobile-menu-close span:first-child { transform: rotate(45deg); }
+.mobile-menu-close span:last-child { transform: rotate(-45deg); }
 .mobile-menu-link {
   font-size: clamp(26px, 7vw, 42px);
   font-weight: 300;
@@ -549,9 +574,32 @@
 }
 
 /* ── Contact page RTL responsive ── */
+.contact-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+.contact-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 20px;
+}
+.contact-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 40px;
+}
 @media (max-width: 899px) {
-  .contact-split { grid-template-columns: 1fr !important; }
-  .contact-form-grid { grid-template-columns: 1fr !important; }
+  /* the form takes the full width and the photograph becomes a band under it,
+     rather than the two sharing a screen neither of them fits on */
+  .contact-split { grid-template-columns: 1fr; min-height: 0; }
+  .contact-media { height: 46vh; min-height: 240px; }
+}
+@media (max-width: 560px) {
+  .contact-form-grid { grid-template-columns: 1fr; gap: 0; }
+}
+@media (max-width: 380px) {
+  .contact-info { grid-template-columns: 1fr; gap: 20px; }
 }
 
 /* ── Footer bottom bar ── */
@@ -651,15 +699,26 @@
 }
 
 /* ── Product hero: light sweep → white wash with the name cut through ── */
+/*
+  One rounded clip over the whole stack antialiases each layer separately and
+  then composites them, so a sliver of the photograph survives around the white
+  frame once the reveal has settled — a dark hairline, worst on the blackest
+  stones. Instead each layer rounds its own corners, the frame paints white
+  underneath them, and the white overshoots by a hair. That holds up at every
+  zoom level, where the single clip did not.
+*/
 .phero {
   position: relative;
   max-width: 1240px;
   margin: 0 auto;
   aspect-ratio: 16 / 9;
-  overflow: hidden;
+  overflow: visible;
   isolation: isolate;
-  background: #0a0c0e;
+  background: #fff;
+  border-radius: 14px;
 }
+.phero__base,
+.phero__gl { border-radius: inherit; }
 .phero__base {
   position: absolute;
   inset: 0;
@@ -670,9 +729,9 @@
 }
 .phero__wash {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  /* a hair beyond the frame, so no edge pixel of the photograph is left showing */
+  inset: -2px;
+  border-radius: 16px;
   z-index: 4;
   pointer-events: none;
   opacity: 0;
@@ -856,4 +915,186 @@ html.is-scrolling .hero-plx {
   box-shadow: 0 0 0 2px #facc15, 0 0 14px rgba(250, 204, 21, 0.5);
   border-radius: 6px;
   transition: filter 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Product detail page
+   ───────────────────────────────────────────────────────────── */
+
+.pd-overview {
+  display: grid;
+  /* the slab shot carries the page, so it takes far more width than the specs
+     beside it — and it keeps a little back on mid-size screens, where the spec
+     labels would otherwise start wrapping */
+  grid-template-columns: 1.7fr 1fr;
+  gap: clamp(32px, 4.5vw, 64px);
+  align-items: center;
+}
+
+.pd-spec {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.55fr);
+  align-items: center;
+  gap: 16px;
+  padding: 13px 0;
+  border-bottom: 1px solid #eae8e4;
+}
+
+.pd-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 14px;
+}
+
+.pd-details {
+  display: grid;
+  grid-template-columns: 0.85fr 1fr;
+  gap: clamp(36px, 5vw, 76px);
+  align-items: start;
+}
+
+.pd-highlights {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px 10px;
+  margin: 0;
+  padding: 0;
+}
+
+/* the slab drawn to size: a rule with end ticks along each edge of the shot.
+   the logical borders mirror with the page, so in RTL the vertical rule sits
+   on the right of the photograph and still closes on its outer side */
+.pd-measure {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  column-gap: 12px;
+  row-gap: 10px;
+  align-items: center;
+  margin-left:50px;
+}
+.pd-measure__x { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+.pd-measure__x i {
+  display: block; width: 100%; height: 5px;
+  border-top: 1px solid #d6d3d1;
+  border-left: 1px solid #d6d3d1;
+  border-right: 1px solid #d6d3d1;
+}
+.pd-measure__y { display: flex; align-items: center; gap: 7px; height: 100%; }
+.pd-measure__y i {
+  display: block; height: 100%; width: 5px;
+  border-inline-start: 1px solid #d6d3d1;
+  border-top: 1px solid #d6d3d1;
+  border-bottom: 1px solid #d6d3d1;
+}
+
+.pd-cards {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: clamp(20px, 2.4vw, 32px);
+  align-items: start;
+}
+
+.pd-apps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(22px, 2.6vw, 32px) 0;
+  margin: 0;
+  padding: 0;
+}
+.pd-apps > li:not(:nth-child(3n + 1)) { border-inline-start: 1px solid #f0eeea; }
+@media (max-width: 380px) {
+  .pd-apps > li:not(:nth-child(3n + 1)) { border-inline-start: none; }
+  .pd-apps > li:not(:nth-child(2n + 1)) { border-inline-start: 1px solid #f0eeea; }
+}
+
+/* 1px gaps over a hairline ground are the dividers, so they stay right
+   however the cells wrap */
+.pd-tech {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1px;
+}
+
+.pd-related {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(20px, 2.5vw, 32px);
+}
+
+@media (max-width: 1120px) {
+  .pd-overview   { grid-template-columns: 1.35fr 1fr; }
+}
+@media (max-width: 899px) {
+  .pd-overview,
+  .pd-details,
+  .pd-cards      { grid-template-columns: 1fr; }
+  .pd-tech       { grid-template-columns: repeat(3, 1fr); }
+
+  .icon-listing-product { text-align: center !important; }
+}
+@media (max-width: 680px) {
+  .pd-related    { grid-template-columns: 1fr 1fr; gap: 16px; }
+  .pd-tech       { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 520px) {
+  .pd-related    { grid-template-columns: 1fr; }
+  .pd-highlights { grid-template-columns: repeat(2, 1fr); }
+  .pd-actions    { grid-template-columns: 1fr; }
+  .pd-spec       { grid-template-columns: 1fr; gap: 4px; }
+}
+@media (max-width: 380px) {
+  .pd-apps       { grid-template-columns: repeat(2, 1fr); }
+  .pd-tech       { grid-template-columns: 1fr; }
+}
+
+/* ── Product details gallery ── */
+.pd-gallery {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2 / 1;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #efedea;
+}
+.pd-gallery__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.pd-gallery__img--in { animation: pd-gallery-in .42s ease both; }
+@keyframes pd-gallery-in { from { opacity: 0; } to { opacity: 1; } }
+
+.pd-thumbs {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.pd-thumbs::-webkit-scrollbar { display: none; }
+.pd-thumb {
+  flex: 0 0 auto;
+  width: clamp(64px, 9vw, 92px);
+  aspect-ratio: 3 / 2;
+  padding: 0;
+  border: none;
+  border-radius: 5px;
+  overflow: hidden;
+  background: #efedea;
+  cursor: pointer;
+  opacity: .58;
+  outline: 1px solid transparent;
+  outline-offset: 2px;
+  transition: opacity .2s ease, outline-color .2s ease;
+}
+.pd-thumb:hover { opacity: .85; }
+.pd-thumb.is-active { opacity: 1; outline-color: #1c1917; }
+.pd-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* still an animation, so onAnimationEnd fires and the outgoing shot is cleared */
+  .pd-gallery__img--in { animation-duration: .01ms; }
 }

@@ -54,6 +54,8 @@ uniform float uLift;
 uniform float uSpec;
 uniform float uShade;
 uniform float uReveal;
+uniform float uDark;     // 1 when the photograph itself is nearly black
+uniform float uSheen;
 
 varying vec2 vUv;
 
@@ -79,16 +81,24 @@ void main() {
   float lD = luma(texture2D(uTex, uv + vec2(0.0, uTexel.y)).rgb);
   float lU = luma(texture2D(uTex, uv - vec2(0.0, uTexel.y)).rgb);
 
-  // relief straight from the photograph: how fast its brightness changes is a
-  // good stand-in for how the surface actually turns
-  vec3 N = normalize(vec3(-(lR - lL) * uRelief, -(lD - lU) * uRelief, 1.0));
+  // Relief straight from the photograph: how fast its brightness changes is a
+  // good stand-in for how the surface actually turns. A nearly black slab has
+  // almost no gradient to read, so on those the relief is amplified until the
+  // grain is something the light can catch.
+  float relief = uRelief * (1.0 + uDark * 7.0);
+  vec3 N = normalize(vec3(-(lR - lL) * relief, -(lD - lU) * relief, 1.0));
 
   // sweep axis, leaned over so the light rakes rather than wipes.
-  // the band must clear the frame at both ends: any residue left at progress 1
+  //
+  // The band must clear the frame at both ends — any residue left at progress 1
   // would mean the settled frame is not the untouched photograph, and the name
-  // is cut out of exactly that frame
+  // is cut out of exactly that frame — but it must not clear it by any more than
+  // that. The frame spans axis -0.07 .. 1.07 and the band fades out within about
+  // 0.3 of its centre, so -0.45 and 1.45 put it just out of sight at each end.
+  // Travelling further only buys dead time: every unit of range beyond the frame
+  // is time in the sweep when nothing is happening on screen.
   float axis = vUv.x + (vUv.y - 0.5) * 0.14;
-  float d = axis - mix(-1.05, 2.15, uProgress);
+  float d = axis - mix(-0.45, 1.45, uProgress);
 
   // A gaussian has long tails, and those tails are the haze around the beam.
   // Cubing the falloff keeps a soft core but drops to nothing far sooner, which
@@ -122,9 +132,20 @@ void main() {
   // it, which is the failure mode this whole layer exists to avoid.
   float fromAbove = mix(1.0, 0.9, vUv.y);
   col *= 1.0 + pool * uLift * uWarm * fromAbove;
-  col += (lC - 0.25 * (lR + lL + lD + lU)) * pool * uCrisp;
+  col += (lC - 0.25 * (lR + lL + lD + lU)) * pool * uCrisp * (1.0 + uDark * 3.0);
   col = mix(vec3(luma(col)), col, 1.0 + pool * 0.34);
   col += spec * uSpec * uWarm * fromAbove;
+
+  // A multiplicative gain cannot brighten black: nothing times anything is
+  // still nothing, which is why the band vanished outright on the darkest
+  // slabs. Black granite does catch a raking light in life — that reflection
+  // happens at the polished surface and owes nothing to how dark the body
+  // beneath it is — so dark photographs get an additive lobe too, broad enough
+  // to read as light lying on the stone rather than as a hot spot. It is scaled
+  // by uDark, so on every other stone this term is exactly zero and the look
+  // that was tuned on them is untouched.
+  float wide = pow(max(dot(N, H), 0.0), max(uShine * 0.08, 1.0));
+  col += (wide * 0.85 + 0.14) * pool * uDark * uSheen * uWarm * fromAbove;
 
   // roll the very top end off instead of clipping it flat, and only where the
   // light reaches, so unlit pixels pass through untouched
@@ -141,6 +162,31 @@ export type StoneLight = {
   resize: () => void;
   dispose: () => void;
 };
+
+/*
+  How black the slab is, as a 0..1 weight. Read from a 32x32 downsample of the
+  photograph, which is enough for an average and costs nothing. The darkest
+  stone in the catalogue sits near 0.05 mean luminance and the median near 0.47,
+  so the ramp only ever engages on genuinely black stone.
+*/
+function darkness(im: HTMLImageElement): number {
+  try {
+    const c = document.createElement("canvas");
+    c.width = 32;
+    c.height = 32;
+    const g = c.getContext("2d", { willReadFrequently: true });
+    if (!g) return 0;
+    g.drawImage(im, 0, 0, 32, 32);
+    const d = g.getImageData(0, 0, 32, 32).data;
+    let sum = 0;
+    for (let i = 0; i < d.length; i += 4) sum += (0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]) / 255;
+    const avg = sum / (d.length / 4);
+    const t = Math.min(1, Math.max(0, (0.2 - avg) / 0.15));
+    return t * t * (3 - 2 * t);
+  } catch {
+    return 0; // tainted canvas or no 2d context: behave exactly as before
+  }
+}
 
 export function createStoneLight(canvas: HTMLCanvasElement, src: string, onReady: () => void): StoneLight | null {
   let renderer: WebGLRenderer;
@@ -171,6 +217,9 @@ export function createStoneLight(canvas: HTMLCanvasElement, src: string, onReady
     // 0.62 in sRGB terms, expressed linearly (0.62 ^ 2.2)
     uShade: { value: 0.34 },
     uReveal: { value: 0 },
+    // set from the photograph once it has loaded; see darkness() above
+    uDark: { value: 0 },
+    uSheen: { value: 0.06 },
   };
   const mesh = new Mesh(new PlaneGeometry(2, 2), new ShaderMaterial({ vertexShader: VERT, fragmentShader: FRAG, uniforms }));
   mesh.frustumCulled = false;
@@ -201,6 +250,7 @@ export function createStoneLight(canvas: HTMLCanvasElement, src: string, onReady
 
   new TextureLoader().load(src, t => {
     if (disposed) { t.dispose(); return; }
+    uniforms.uDark.value = darkness(t.image as HTMLImageElement);
     t.colorSpace = SRGBColorSpace;
     t.anisotropy = renderer.capabilities.getMaxAnisotropy();
     tex = t;

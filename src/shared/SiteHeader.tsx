@@ -68,6 +68,10 @@ export function SiteHeader({
   return (
     <>
       <div className={`mobile-menu${menuOpen ? " open" : ""}`}>
+        <button className="mobile-menu-close" aria-label={t("nav.closeMenu")} onClick={() => setMenuOpen(false)}>
+          <span />
+          <span />
+        </button>
         {NAV_ITEMS.map(({ key, label }) => (
           <button key={key} className="mobile-menu-link" onClick={() => go(key)}>
             {label}
