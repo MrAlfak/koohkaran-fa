@@ -592,15 +592,83 @@ export default function App() {
 }
 
 /* ════════════════ HOME PAGE ════════════════ */
-// ── پیکربندی parallax هر لایه ──
-// idx: 0=mt3(پس‌زمینه)  1=text  2=mt1(جلو)  3=mt2(جلو)
-// x مثبت → راست، x منفی → چپ
-const PLX_CFG = [
-  { y: +0.60, x:  0    },  // 0  کوه ۳ – پس‌زمینه، بالا می‌ره آروم
-  { y: -0.40, x:  0    },  // 1  متن – کمی پایین می‌ره
-  { y: -0.00, x: +0.00 },  // 2  کوه ۱ – بالا می‌ره + به راست
-  { y: +0.30, x: -0.07 },  // 3  کوه ۲ – بالا می‌ره + به چپ
+/*
+  ── پیکربندی parallax هر لایه ──
+  x مثبت → راست، x منفی → چپ
+
+  Each slide is the same construction as the first one ever was: a stack of
+  bottom-anchored, full-width cut-outs, each drifting at its own rate. The
+  numbers below are the ones the first slide has always used; the second slide
+  has five layers instead of three, so its drift is spread across the same
+  range rather than being invented anew — the motion reads identically.
+*/
+const PLX_TEXT = { y: -0.40, x: 0 };   // متن – کمی پایین می‌ره
+
+/*
+  A layer is either the whole frame (slide one: every cut-out was exported at the
+  full 3098x1728 artboard) or a piece placed inside it (slide two: the pieces
+  were exported trimmed, so each carries its own size and position as a share of
+  that same artboard). Either way the artboard maps onto the hero exactly as a
+  slide-one image does, so both slides frame and zoom identically.
+*/
+type HeroLayer = {
+  src: string;
+  z: number;
+  plx: { x: number; y: number };
+  at?: { w: number; l: number; t: number };   // % of the artboard
+};
+
+const ART_W = 3098, ART_H = 1728;
+const at = (w: number, l: number, t: number) => ({
+  w: (w / ART_W) * 100,
+  l: (l / ART_W) * 100,
+  t: (t / ART_H) * 100,
+});
+
+// هر اسلاید: لایه‌ها از پس‌زمینه (بالا) به جلو (پایین)
+const HERO_SLIDES: HeroLayer[][] = [
+  [
+    { src: "images/hero/hero-koohkaran3.webp", z: 2, plx: { y: +0.60, x:  0    } },  // کوه ۳ – پس‌زمینه
+    { src: "images/hero/hero-koohkaran2.webp", z: 4, plx: { y: +0.30, x: -0.07 } },  // کوه ۲ – به چپ
+    { src: "images/hero/hero koohkaran1.webp", z: 5, plx: { y: -0.00, x: +0.00 } },  // کوه ۱ – جلو
+  ],
+  [
+    { src: "images/hero/hero koohkaran 2 (4) copy.webp", z: 2, plx: { y: +0.60, x:  0    }, at: at(3098,     0,    0) },
+    { src: "images/hero/hero koohkaran 2 (3) copy.webp", z: 3, plx: { y: +0.45, x: -0.04 }, at: at(1553,     0,  184) },
+    { src: "images/hero/hero koohkaran 2 (2) copy.webp", z: 4, plx: { y: +0.30, x: -0.07 }, at: at(1686,  1412,  110) },
+    { src: "images/hero/hero koohkaran 2 (5) copy.webp", z: 5, plx: { y: +0.15, x: +0.00 }, at: at(1670,  1428,  552) },
+    { src: "images/hero/hero koohkaran 2 (1) copy.webp", z: 6, plx: { y: -0.00, x: +0.00 }, at: at(2217,     0,  658) },
+  ],
+  [
+    { src: "images/hero/hero koohkaran 3 (5) copy.webp", z: 2, plx: { y: +0.60, x:  0    }, at: at(3098,     0,    0) },
+    { src: "images/hero/hero koohkaran 3 (4) copy.webp", z: 3, plx: { y: +0.50, x: -0.03 }, at: at(1213,     0,  875) },
+    { src: "images/hero/hero koohkaran 3 (3) copy.webp", z: 4, plx: { y: +0.38, x: -0.05 }, at: at(2822,   276,    0) },
+    { src: "images/hero/hero koohkaran 3 (6) copy.webp", z: 5, plx: { y: +0.26, x: -0.06 }, at: at(3098,     0,  392) },
+    { src: "images/hero/hero koohkaran 3 (2) copy.webp", z: 6, plx: { y: +0.13, x: -0.03 }, at: at(1810,     0,  796) },
+    { src: "images/hero/hero koohkaran 3 (1) copy.webp", z: 7, plx: { y: -0.00, x: +0.00 }, at: at(3098,     0,  894) },
+  ],
+  [
+    { src: "images/hero/hero koohkaran 4 bg.webp",       z: 2, plx: { y: +0.27, x: +0.00 }, at: at(3098,     0,    0) },
+    { src: "images/hero/hero koohkaran 4 (3) copy.webp", z: 3, plx: { y: +0.30, x: +0.00 }, at: at(1657,  1441,    0) },
+    { src: "images/hero/hero koohkaran 4 (6) copy.webp", z: 4, plx: { y: +0.29, x: +0.00 }, at: at(1819,     0,    0) },
+    { src: "images/hero/hero koohkaran 4 (2) copy.webp", z: 5, plx: { y: +0.28, x: +0.00 }, at: at(1687,  1411,    0) },
+    { src: "images/hero/hero koohkaran 4 (5) copy.webp", z: 6, plx: { y: +0.27, x: +0.00 }, at: at(1473,     0,    0) },
+    { src: "images/hero/hero koohkaran 4 (7) copy.webp", z: 7, plx: { y: +0.26, x: +0.00 }, at: at( 967,  2131,    0) },
+    { src: "images/hero/hero koohkaran 4 (4) copy.webp", z: 8, plx: { y: +0.25, x: +0.00 }, at: at( 953,     0,    0) },
+    { src: "images/hero/hero koohkaran 4 (1).webp",      z: 9, plx: { y: +0.24, x: +0.00 }, at: at( 673,  2425, 1013) },
+  ],
+  [
+    { src: "images/hero/hero koohkaran 6 (4) copy.webp", z: 2, plx: { y: +0.55, x: +0.00 }, at: at(3098,     0,    0) },
+    { src: "images/hero/hero koohkaran 6 (3) copy.webp", z: 3, plx: { y: +0.34, x: -0.03 }, at: at(3098,     0,    0) },
+    { src: "images/hero/hero koohkaran 6 (2) copy.webp", z: 4, plx: { y: +0.16, x: -0.02 }, at: at(3098,     0,  122) },
+    { src: "images/hero/hero koohkaran 6 (1) copy.webp", z: 5, plx: { y: -0.00, x: +0.00 }, at: at(3098,     0,   59) },
+  ],
 ];
+
+// شماره‌ی اسلایدر با رقم فارسی، دورقمی
+const faNum = (n: number) =>
+  String(n).padStart(2, "0").replace(/[0-9]/g, d => "۰۱۲۳۴۵۶۷۸۹"[+d]);
+const SLIDE_EVERY = 7000;   // ms روی هر اسلاید
 
 function HomePage({ onNavigate }: { onNavigate: NavigateFn }) {
   const [scrolled, setScrolled] = useState(false);
@@ -632,8 +700,73 @@ function HomePage({ onNavigate }: { onNavigate: NavigateFn }) {
     };
   }, [menuOpen]);
 
-  // Parallax refs برای 4 لایه (0=mt3, 1=text, 2=mt1, 3=mt2)
-  const plxRefs = useRef<(HTMLDivElement | null)[]>(Array(4).fill(null));
+  /*
+    Parallax refs. The layers are no longer a fixed set — every slide brings its
+    own — so they register themselves as they mount and unregister on the way
+    out (React 19 takes a cleanup function back from a ref callback).
+  */
+  const plxRefs = useRef<{ el: HTMLDivElement; x: number; y: number; text: boolean }[]>([]);
+  const registerPlx = (plx: { x: number; y: number }, text = false) => (el: HTMLDivElement) => {
+    plxRefs.current.push({ el, x: plx.x, y: plx.y, text });
+    return () => { plxRefs.current = plxRefs.current.filter(r => r.el !== el); };
+  };
+
+  // اسلایدر هیرو
+  const [slide, setSlide] = useState(0);
+  const [wanted, setWanted] = useState(0);
+
+  /*
+    The later slides carry a couple of megabytes of plates between them. They are
+    fetched and DECODED off the critical path, and a slide only becomes available
+    once every one of its plates is decoded — otherwise the crossfade starts on a
+    half-drawn picture and the layers visibly pop in one by one.
+  */
+  const [ready, setReady] = useState<boolean[]>(() => HERO_SLIDES.map((_, i) => i === 0));
+  useEffect(() => {
+    let alive = true;
+    const load = (src: string) => new Promise<void>(done => {
+      const im = new Image();
+      im.src = img(src);
+      // a failed plate must not strand the slide: settle either way
+      if (im.decode) im.decode().then(() => done(), () => done());
+      else { im.onload = () => done(); im.onerror = () => done(); }
+    });
+    const run = async () => {
+      // one slide at a time, so an early slide is ready before a later one
+      // competes for the connection
+      for (let s = 1; s < HERO_SLIDES.length; s++) {
+        await Promise.all(HERO_SLIDES[s].map(l => load(l.src)));
+        if (!alive) return;
+        setReady(r => { const n = r.slice(); n[s] = true; return n; });
+      }
+    };
+    let id = 0;
+    const start = () => {
+      const idle = "requestIdleCallback" in window ? window.requestIdleCallback.bind(window) : undefined;
+      id = idle ? (idle(() => { void run(); }, { timeout: 2500 }) as unknown as number)
+                : window.setTimeout(() => { void run(); }, 600);
+    };
+    // only once the page itself has finished loading, so the preload never
+    // competes with first paint
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
+    return () => { alive = false; window.removeEventListener("load", start); if (id) clearTimeout(id); };
+  }, []);
+
+  // a pick waits for its plates rather than fading onto an unpainted slide
+  useEffect(() => { if (ready[wanted]) setSlide(wanted); }, [wanted, ready]);
+
+  useEffect(() => {
+    if (HERO_SLIDES.length < 2) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => {
+      for (let k = 1; k <= HERO_SLIDES.length; k++) {
+        const n = (slide + k) % HERO_SLIDES.length;
+        if (ready[n]) { setWanted(n); return; }   // skip past anything still loading
+      }
+    }, SLIDE_EVERY);
+    return () => clearInterval(id);
+  }, [slide, ready]);
 
   useEffect(() => {
     let raf = 0;
@@ -665,10 +798,8 @@ function HomePage({ onNavigate }: { onNavigate: NavigateFn }) {
       const vh = window.innerHeight;
       if (y > vh * 1.5) return;
       const mountainScale = 1 + (y / vh) * 0.1;
-      plxRefs.current.forEach((el, i) => {
-        if (!el) return;
-        const { x, y: ys } = PLX_CFG[i];
-        const sc = i !== 1 ? mountainScale : 1;
+      plxRefs.current.forEach(({ el, x, y: ys, text }) => {
+        const sc = text ? 1 : mountainScale;
         el.style.transform = `translate3d(${y * x}px,${y * ys}px,0) scale(${sc})`;
       });
     };
@@ -737,7 +868,7 @@ function HomePage({ onNavigate }: { onNavigate: NavigateFn }) {
       </header>
 
       {/* ══════════ HERO — PARALLAX ══════════ */}
-      <section style={{ position: "relative", height: "100svh", minHeight: 560, overflow: "hidden" }}>
+      <section className="hero-section" style={{ position: "relative", overflow: "hidden" }}>
 
         {/* آسمان پشت کوه‌ها */}
         <div style={{
@@ -751,13 +882,27 @@ function HomePage({ onNavigate }: { onNavigate: NavigateFn }) {
           background: "linear-gradient(180deg,rgba(0,0,0,0.04) 0%,rgba(0,0,0,0.10) 45%,rgba(0,0,0,0.55) 100%)"
         }} />
 
-        {/* 0 — کوه ۳ پس‌زمینه (کامل، بدون برش) */}
-        <div ref={el => { plxRefs.current[0] = el; }} className="hero-plx" style={{ zIndex: 2 }}>
-          <img src={img("images/hero/hero-koohkaran3.webp")} alt="" className="hero-mountain-img" />
-        </div>
+        {/* کوه‌ها — هر اسلاید همان چیدمان لایه‌ای، فقط با عکس‌های خودش */}
+        {HERO_SLIDES.map((layers, s) => (
+          <div key={s} className={`hero-slide${s === slide ? " is-active" : ""}`} aria-hidden={s !== slide}>
+            {(s === 0 || ready[s]) && layers.map(({ src, z, plx, at: pos }) => (
+              <div key={src} ref={registerPlx(plx)} className="hero-plx" style={{ zIndex: z }}>
+                {pos ? (
+                  <div className="hero-art">
+                    <img src={img(src)} alt="" className="hero-piece" decoding="async" fetchPriority="low"
+                      style={{ width: `${pos.w}%`, left: `${pos.l}%`, top: `${pos.t}%` }} />
+                  </div>
+                ) : (
+                  <img src={img(src)} alt="" className="hero-mountain-img"
+                    decoding="async" fetchPriority={s === 0 ? "high" : "low"} />
+                )}
+              </div>
+            ))}
+          </div>
+        ))}
 
-        {/* 1 — متن (جلوتر از همه کوه‌ها) */}
-        <div ref={el => { plxRefs.current[1] = el; }} className="hero-plx"
+        {/* متن (جلوتر از همه کوه‌ها) — بین اسلایدها مشترکه */}
+        <div ref={registerPlx(PLX_TEXT, true)} className="hero-plx"
           style={{ zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <h1 dir="ltr" style={{
             margin: 0, color: "#fff", fontWeight: 300,
@@ -773,16 +918,6 @@ function HomePage({ onNavigate }: { onNavigate: NavigateFn }) {
           </h1>
         </div>
 
-        {/* 2 — کوه ۱ جلو (کامل، دریفت به راست) */}
-        <div ref={el => { plxRefs.current[2] = el; }} className="hero-plx" style={{ zIndex: 5 }}>
-          <img src={img("images/hero/hero koohkaran1.webp")} alt="" className="hero-mountain-img" />
-        </div>
-
-        {/* 3 — کوه ۲ جلو (کامل، دریفت به چپ) — پشت کوه ۱ */}
-        <div ref={el => { plxRefs.current[3] = el; }} className="hero-plx" style={{ zIndex: 4 }}>
-          <img src={img("images/hero/hero-koohkaran2.webp")} alt="" className="hero-mountain-img" />
-        </div>
-
         {/* shimmer */}
         <div className="hero-shimmer" style={{ zIndex: 6 }} />
 
@@ -793,14 +928,33 @@ function HomePage({ onNavigate }: { onNavigate: NavigateFn }) {
           background: "linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,1) 15%, rgba(255,255,255,0) 100%)"
         }} />
 
+        {/* نقطه‌های اسلایدر */}
+        {HERO_SLIDES.length > 1 && (
+          <div className="hero-dots" style={{ ["--hero-slide-ms" as string]: `${SLIDE_EVERY}ms` }}>
+            <span className="hero-count" aria-hidden="true">
+              <b>{faNum(slide + 1)}</b>
+              <i>/</i>
+              {faNum(HERO_SLIDES.length)}
+            </span>
+            {HERO_SLIDES.map((_, s) => (
+              <button key={s} type="button"
+                className={`hero-dot${s === slide ? " is-active" : ""}${ready[s] ? "" : " is-loading"}`}
+                aria-label={`اسلاید ${s + 1}`} aria-current={s === slide}
+                onClick={() => setWanted(s)} />
+            ))}
+          </div>
+        )}
+
         {/* Crafted by Nature */}
         <div className="hero-tagline" style={{
-          position: "absolute", bottom: 32, left: "clamp(20px,4vw,60px)",
+          /* inline-end, so it stays opposite the slider dots in both directions */
+          position: "absolute", top: "calc(100svh - 52px)", insetInlineEnd: "clamp(20px,4vw,60px)",
           zIndex: 10, display: "flex", alignItems: "center", gap: 8,
-          color: "rgba(255,255,255,0.88)", fontSize: 13,
+          /* it sits on the fold now, where the hero has already faded to white */
+          color: "rgba(28,25,23,0.6)", fontSize: 13,
         }}>
           {t("site.craftedByNature")}
-          <svg className="hero-scroll" width="12" height="18" viewBox="0 0 12 18" fill="none" stroke="white" strokeWidth="1.2">
+          <svg className="hero-scroll" width="12" height="18" viewBox="0 0 12 18" fill="none" stroke="rgba(28,25,23,0.6)" strokeWidth="1.2">
             <line x1="6" y1="0" x2="6" y2="15"/><polyline points="2,11 6,15 10,11"/>
           </svg>
         </div>
